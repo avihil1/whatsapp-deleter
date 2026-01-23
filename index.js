@@ -12,8 +12,10 @@ const client = new Client({
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage'
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
         ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null
     }
 });
 
