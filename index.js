@@ -25,7 +25,7 @@ client.on('qr', (qr) => {
 client.on('ready', () => console.log('Bot is live in the cloud!'));
 
 client.on('message', async (msg) => {
-    const targetID = '97250XXXXXXX@c.us'; // The exact ID of the person
+    const targetID = '972500000000@c.us'; // The exact ID of the person
     if (msg.author === targetID || msg.from === targetID) {
         try {
             await msg.delete(false); // Delete for me only
