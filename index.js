@@ -2,20 +2,18 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 const client = new Client({
-    // This saves your login data in a folder named .wwebjs_auth
-    authStrategy: new LocalAuth({
-        dataPath: './sessions' 
-    }),
+    authStrategy: new LocalAuth({ dataPath: './sessions' }),
     puppeteer: {
         headless: true,
-        // Crucial flags for running in a cloud container
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-gpu'
+            '--single-process', // Helps with memory on low-tier cloud plans
+            '--no-zygote'
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null
+        // This ensures Puppeteer uses the Chrome installed by Nixpacks
+        executablePath: '/usr/bin/google-chrome-stable' 
     }
 });
 

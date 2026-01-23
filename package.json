@@ -4,7 +4,8 @@
     "main": "index.js",
     "dependencies": {
       "whatsapp-web.js": "^1.23.0",
-      "qrcode-terminal": "^0.12.0"
+      "qrcode-terminal": "^0.12.0",
+      "puppeteer": "^22.0.0"
     },
     "scripts": {
       "start": "node index.js"
