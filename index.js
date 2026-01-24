@@ -23,7 +23,7 @@ client.on('ready', async () => {
     console.log('Bot is live in the cloud!');
     
     // Your number (WhatsApp number)
-    const myNumber = process.env.MY_NUMBER + '@c.us'; 
+    const myNumber = process.env.MY_NUMBER.trim() + '@c.us'; 
     try {
         await client.sendMessage(myNumber, '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
     } catch (err) {
