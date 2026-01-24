@@ -2,7 +2,10 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 const client = new Client({
-    authStrategy: new LocalAuth({ dataPath: './sessions' }),
+    authStrategy: new LocalAuth({ 
+        dataPath: '/app/sessions',
+        clientId: "vibe-shield-main"
+    }),
     puppeteer: {
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
