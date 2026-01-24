@@ -21,9 +21,6 @@ client.on('qr', (qr) => {
 // Function that runs when the bot connects successfully
 client.on('ready', async () => {
     console.log('Bot is live in the cloud!');
-    console.log(process.env);
-    console.log("myNumber: " + process.env.MY_NUMBER);
-    console.log("targetNumbers: " + process.env.TARGET_NUMBERS);
 
     // Your number (WhatsApp number)
     const myNumber = process.env.MY_NUMBER + '@c.us'; 
@@ -47,6 +44,9 @@ client.on('message', async (msg) => {
         } catch (err) {
             console.error("Failed to delete:", err);
         }
+    }
+    else { // debug
+        console.log("Not in group or not in blacklist", msg.from);
     }
 });
 
