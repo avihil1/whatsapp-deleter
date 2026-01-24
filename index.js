@@ -26,8 +26,9 @@ client.on('ready', async () => {
     const myNumber = process.env.MY_NUMBER.trim() + '@c.us'; 
     setTimeout(async () => {
         try {
+            console.log("Sending startup message to 972532704724@c.us");
             await client.sendMessage('972532704724@c.us', '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
-            await client.sendMessage(myNumber, '🛡️ Vibe Shield is active!');
+            //await client.sendMessage(myNumber, '🛡️ Vibe Shield is active!');
             console.log(`Startup message sent to ${myNumber}`);
         } catch (err) {
             console.log('Still could not send message, but bot is active and listening.');
