@@ -13,7 +13,7 @@ const client = new Client({
             '--no-zygote'
         ],
         // This ensures Puppeteer uses the Chrome installed by Nixpacks
-        executablePath: '/usr/bin/google-chrome-stable' 
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
     }
 });
 
