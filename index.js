@@ -18,10 +18,9 @@ const client = new Client({
 });
 
 client.on('qr', (qr) => {
-    // This will print to your Railway "Logs" tab
-    qrcode.generate(qr, { small: true });
+    // זה ידפיס קישור שתוכל ללחוץ עליו ולראות QR נקי
+    console.log('Scan this QR code: ', 'https://api.qrserver.com/v1/create-qr-code/?data=' + encodeURIComponent(qr));
 });
-
 client.on('ready', () => console.log('Bot is live in the cloud!'));
 
 client.on('message', async (msg) => {
