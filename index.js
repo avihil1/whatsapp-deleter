@@ -27,7 +27,7 @@ client.on('ready', async () => {
     try {
         await client.sendMessage(myNumber, '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
     } catch (err) {
-        console.log('Could not send startup message, but bot is working.');
+        console.log('Could not send startup message to', myNumber, 'but bot is working.');
     }
 });
 
