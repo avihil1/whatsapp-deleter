@@ -23,13 +23,16 @@ client.on('ready', async () => {
     console.log('Bot is live in the cloud!');
 
     // Your number (WhatsApp number)
-    const myNumber = process.env.MY_NUMBER + '@c.us'; 
-    try {
-        await client.sendMessage('972532704724@c.us', '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
-        await client.sendMessage(myNumber, '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
-    } catch (err) {
-        console.log('Could not send startup message to', myNumber, 'but bot is working.');
-    }
+    const myNumber = process.env.MY_NUMBER.trim() + '@c.us'; 
+    setTimeout(async () => {
+        try {
+            await client.sendMessage('972532704724@c.us', '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
+            await client.sendMessage(myNumber, '🛡️ Vibe Shield is active!');
+            console.log(`Startup message sent to ${myNumber}`);
+        } catch (err) {
+            console.log('Still could not send message, but bot is active and listening.');
+        }
+    }, 5000);
 });
 
 client.on('message', async (msg) => {
