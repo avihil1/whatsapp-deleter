@@ -21,9 +21,12 @@ client.on('qr', (qr) => {
 // Function that runs when the bot connects successfully
 client.on('ready', async () => {
     console.log('Bot is live in the cloud!');
-    
+    console.log(process.env);
+    console.log("myNumber: " + process.env.MY_NUMBER);
+    console.log("targetNumbers: " + process.env.TARGET_NUMBERS);
+
     // Your number (WhatsApp number)
-    const myNumber = process.env.MY_NUMBER.trim() + '@c.us'; 
+    const myNumber = process.env.MY_NUMBER + '@c.us'; 
     try {
         await client.sendMessage(myNumber, '🛡️ Vibe Shield is active! The bot is connected and working 24/7.');
     } catch (err) {
