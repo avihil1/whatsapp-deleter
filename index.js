@@ -4,7 +4,7 @@ const qrcode = require('qrcode-terminal');
 const client = new Client({
     authStrategy: new LocalAuth({ 
         dataPath: '/app/sessions',
-        clientId: "vibe-shield-main"
+        clientId: "vibe-shield-main-v2"
     }),
     puppeteer: {
         headless: true,
