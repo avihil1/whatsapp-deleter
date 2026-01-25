@@ -45,36 +45,42 @@ client.on('auth_failure', msg => {
 });
 
 client.on('ready', async () => {
-    console.log('READY: Bot is fully connected and listening!');
-    
-    const myNumber = '972532704724@c.us';
-    console.log(`Attempting to send startup message to ${myNumber}...`);
-    
+    console.log('READY: Bot is fully connected!');
+
     try {
-        await client.sendMessage(myNumber, '🛡️ Vibe Shield is active and debugging is ON!');
+        // Use the internal info of the client to send a message to yourself
+        const myId = client.info.wid._serialized; 
+        console.log(`Attempting startup message to self (${myId})...`);
+        
+        await client.sendMessage(myId, '🛡️ Vibe Shield is active and LID-ready!');
         console.log('SUCCESS: Startup message sent.');
     } catch (err) {
-        console.log('NOTICE: Could not send startup message. This usually happens if the self-chat is not synced.');
+        // This is common on cloud restarts; don't let it worry you
+        console.log('NOTICE: Self-message failed. This is a known sync delay, but the bot is listening to groups.');
     }
 });
 
 client.on('message', async (msg) => {
     const rawTargets = process.env.TARGET_NUMBERS || "";
-    const blackList = rawTargets.split(',').map(num => num.trim() + '@c.us');
+    const blackList = rawTargets.split(',').map(num => num.trim());
     
-    const sender = msg.author || msg.from; 
+    // Get the contact to extract the actual phone number, bypassing @lid issues
+    const contact = await msg.getContact();
+    const senderNumber = contact.number; // This returns the clean phone number
+    const senderId = msg.author || msg.from;
+    
     const isGroup = msg.from.endsWith('@g.us');
-    const isTarget = blackList.includes(sender);
+    // Check if either the ID or the actual phone number is in the blacklist
+    const isTarget = blackList.some(num => senderId.includes(num) || senderNumber.includes(num));
 
-    // Logging every message to identify why the bot might be "inconsistent"
-    console.log(`[New Message] From: ${msg.from} | Sender: ${sender} | In Group: ${isGroup} | Is Target: ${isTarget}`);
+    console.log(`[New Message] From: ${msg.from} | SenderID: ${senderId} | Number: ${senderNumber} | Is Target: ${isTarget}`);
 
     if (isGroup && isTarget) {
         try {
             await msg.delete(false); 
-            console.log(`✅ ACTION: Deleted message from ${sender} in group ${msg.from}`);
+            console.log(`✅ ACTION: Deleted message from ${senderNumber}`);
         } catch (err) {
-            console.error(`❌ ERROR: Failed to delete message. Error:`, err.message);
+            console.error(`❌ ERROR: Failed to delete. Error:`, err.message);
         }
     }
 });
