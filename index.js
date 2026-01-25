@@ -41,7 +41,10 @@ client.on('auth_failure', msg => { console.error('AUTHENTICATION FAILURE:', msg)
 
 client.on('message', async (msg) => {
     // 1. Quick exit if not a group message
-    if (!msg.from.endsWith('@g.us')) return;
+    if (!msg.from.endsWith('@g.us')) {
+        console.log(`[Msg] Not a group message: ${msg.from || msg.author}`);
+        return;
+    }
 
     try {
         const rawTargets = process.env.TARGET_NUMBERS || "";
