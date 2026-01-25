@@ -1,66 +1,86 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
+console.log('--- System Starting Up ---');
+
 const client = new Client({
     authStrategy: new LocalAuth({ 
         dataPath: '/app/sessions',
-        clientId: "vibe-shield-main-v2"
+        clientId: "vibe-shield-final" 
     }),
+    webVersionCache: {
+        type: 'remote',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-js/main/dist/wppconnect-wa.js',
+    },
     puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', 
-               '--disable-dev-shm-usage', '--disable-gpu','--remote-debugging-port=9222'],
+        args: [
+            '--no-sandbox', 
+            '--disable-setuid-sandbox', 
+            '--disable-dev-shm-usage', 
+            '--disable-gpu'
+        ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
     }
 });
 
+// Display QR code for scanning if session is not saved or expired
 client.on('qr', (qr) => {
-    console.log('Scan this QR code: ', 'https://api.qrserver.com/v1/create-qr-code/?data=' + encodeURIComponent(qr));
+    console.log('SCAN THIS QR CODE: ', 'https://api.qrserver.com/v1/create-qr-code/?data=' + encodeURIComponent(qr));
     qrcode.generate(qr, { small: true });
 });
 
-// Function that runs when the bot connects successfully
-client.on('ready', async () => {
-    console.log('Bot is live in the cloud!');
+// --- Debugging Events ---
 
-    // Your number (WhatsApp number)
-    const myNumber = process.env.MY_NUMBER.trim() + '@c.us'; 
-    setTimeout(async () => {
-        try {
-            console.log("Sending startup message to 972532704724@c.us");
-            //const chat = await client.getChatById('972532704724@c.us');
-            //console.log(chat);
-            await client.sendMessage('972532704724@c.us', '🛡️ Vibe Shield is active!');
-            console.log(`Startup message sent to ${myNumber}`);
-        } catch (err) {
-            console.log('Still could not send message, but bot is active and listening.');
-        }
-    }, 5000);
+client.on('loading_screen', (percent, message) => {
+    console.log('LOADING SCREEN:', percent, message);
+});
+
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED: Session saved successfully.');
+});
+
+client.on('auth_failure', msg => {
+    console.error('AUTHENTICATION FAILURE:', msg);
+});
+
+client.on('ready', async () => {
+    console.log('READY: Bot is fully connected and listening!');
+    
+    const myNumber = '972532704724@c.us';
+    console.log(`Attempting to send startup message to ${myNumber}...`);
+    
+    try {
+        await client.sendMessage(myNumber, '🛡️ Vibe Shield is active and debugging is ON!');
+        console.log('SUCCESS: Startup message sent.');
+    } catch (err) {
+        console.log('NOTICE: Could not send startup message. This usually happens if the self-chat is not synced.');
+    }
 });
 
 client.on('message', async (msg) => {
     const rawTargets = process.env.TARGET_NUMBERS || "";
     const blackList = rawTargets.split(',').map(num => num.trim() + '@c.us');
-
+    
+    const sender = msg.author || msg.from; 
     const isGroup = msg.from.endsWith('@g.us');
-    const sender = msg.author || msg.from; // in group it's author, in private it's from
+    const isTarget = blackList.includes(sender);
 
-    // Debug critical log - it will tell us exactly what's happening
-    console.log(`--- New Message ---`);
-    console.log(`From: ${msg.from} (Is Group: ${isGroup})`);
-    console.log(`Sender ID: ${sender}`);
-    console.log(`Blacklist: ${blackList.join(', ')}`);
+    // Logging every message to identify why the bot might be "inconsistent"
+    console.log(`[New Message] From: ${msg.from} | Sender: ${sender} | In Group: ${isGroup} | Is Target: ${isTarget}`);
 
-    if (isGroup && blackList.includes(sender)) {
+    if (isGroup && isTarget) {
         try {
-            await msg.delete(false);
-            console.log(`✅ Vibe Check: Deleted message from ${sender}`);
+            await msg.delete(false); 
+            console.log(`✅ ACTION: Deleted message from ${sender} in group ${msg.from}`);
         } catch (err) {
-            console.error("❌ Failed to delete:", err);
+            console.error(`❌ ERROR: Failed to delete message. Error:`, err.message);
         }
-    } else {
-        console.log("ℹ️ Message ignored: Not a target or not in group.");
     }
+});
+
+client.on('disconnected', (reason) => {
+    console.log('DISCONNECTED: Client was logged out.', reason);
 });
 
 client.initialize();
