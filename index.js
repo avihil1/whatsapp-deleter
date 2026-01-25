@@ -40,31 +40,28 @@ client.on('authenticated', () => { console.log('AUTHENTICATED: Session saved suc
 client.on('auth_failure', msg => { console.error('AUTHENTICATION FAILURE:', msg); });
 
 client.on('message', async (msg) => {
+    // 1. Quick exit if not a group message
+    if (!msg.from.endsWith('@g.us')) return;
+
     try {
         const rawTargets = process.env.TARGET_NUMBERS || "";
-        // Clean list of numbers (e.g., "972501234567")
+        // Clean list: just the numbers from Railway
         const blackList = rawTargets.split(',').map(num => num.trim());
         
-        const isGroup = msg.from.endsWith('@g.us');
-        if (!isGroup) return; // Optimization: Ignore non-group messages immediately
-
-        const senderId = msg.author || msg.from; 
+        const senderId = msg.author || msg.from; // This is the @lid or @c.us string
         
-        // Extract ONLY the digits from the sender string (works for @c.us and @lid)
-        const senderDigits = senderId.split('@')[0];
+        // 2. Logic: Check if ANY number from your blacklist exists inside the senderId string
+        // This works because "9725..." is usually embedded inside the LID or is the ID itself
+        const isTarget = blackList.some(num => senderId.includes(num));
 
-        // Check if any blacklisted number is contained within the sender's ID
-        const isTarget = blackList.some(num => senderDigits.includes(num));
-
-        console.log(`[Msg] From: ${msg.from} | SenderID: ${senderId} | Is Target: ${isTarget}`);
+        console.log(`[Msg] Group: ${msg.from} | Sender: ${senderId} | Match: ${isTarget}`);
 
         if (isTarget) {
-            await msg.delete(false); 
-            console.log(`✅ ACTION: Deleted message from ${senderId}`);
+            await msg.delete(false); // Delete only for the bot's account
+            console.log(`✅ SUCCESS: Message from ${senderId} deleted.`);
         }
     } catch (err) {
-        // Catch errors inside the message event to prevent the whole bot from crashing
-        console.error(`❌ Error in message handler:`, err.message);
+        console.error(`❌ Error processing message:`, err.message);
     }
 });
 
