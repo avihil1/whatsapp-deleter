@@ -8,7 +8,8 @@ const client = new Client({
     }),
     puppeteer: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox', 
+               '--disable-dev-shm-usage', '--disable-gpu','--remote-debugging-port=9222'],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
     }
 });
