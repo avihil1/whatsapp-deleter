@@ -27,6 +27,8 @@ client.on('ready', async () => {
     setTimeout(async () => {
         try {
             console.log("Sending startup message to 972532704724@c.us");
+            //const chat = await client.getChatById('972532704724@c.us');
+            //console.log(chat);
             await client.sendMessage('972532704724@c.us', '🛡️ Vibe Shield is active!');
             console.log(`Startup message sent to ${myNumber}`);
         } catch (err) {
@@ -36,21 +38,27 @@ client.on('ready', async () => {
 });
 
 client.on('message', async (msg) => {
-    // Reading the list of numbers from Railway
     const rawTargets = process.env.TARGET_NUMBERS || "";
     const blackList = rawTargets.split(',').map(num => num.trim() + '@c.us');
 
-    // Only delete in groups, when the sender is in the blacklist
-    if (msg.from.endsWith('@g.us') && msg.author && blackList.includes(msg.author)) {
+    const isGroup = msg.from.endsWith('@g.us');
+    const sender = msg.author || msg.from; // in group it's author, in private it's from
+
+    // Debug critical log - it will tell us exactly what's happening
+    console.log(`--- New Message ---`);
+    console.log(`From: ${msg.from} (Is Group: ${isGroup})`);
+    console.log(`Sender ID: ${sender}`);
+    console.log(`Blacklist: ${blackList.join(', ')}`);
+
+    if (isGroup && blackList.includes(sender)) {
         try {
-            await msg.delete(false); // Only delete for me
-            console.log(`Vibe Check: Deleted message from ${msg.author}`);
+            await msg.delete(false);
+            console.log(`✅ Vibe Check: Deleted message from ${sender}`);
         } catch (err) {
-            console.error("Failed to delete:", err);
+            console.error("❌ Failed to delete:", err);
         }
-    }
-    else { // debug
-        console.log("Not in group or not in blacklist", msg.from);
+    } else {
+        console.log("ℹ️ Message ignored: Not a target or not in group.");
     }
 });
 
