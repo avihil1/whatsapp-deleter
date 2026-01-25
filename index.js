@@ -20,7 +20,11 @@ const client = new Client({
             '--no-sandbox', 
             '--disable-setuid-sandbox', 
             '--disable-dev-shm-usage', 
-            '--disable-gpu'
+            '--disable-gpu',
+            '--single-process',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote'
         ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
     }
@@ -71,5 +75,19 @@ client.on('message', async (msg) => {
 client.on('disconnected', (reason) => {
     console.log('DISCONNECTED:', reason);
 });
+
+const shutdown = async (signal) => {
+    console.log(`[${new Date().toISOString()}] Received ${signal}. Closing browser...`);
+    try {
+        await client.destroy();
+        console.log('Browser closed. Exiting process.');
+        process.exit(0);
+    } catch (err) {
+        process.exit(1);
+    }
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 client.initialize();
