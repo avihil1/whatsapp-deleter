@@ -1,5 +1,4 @@
-export TARGET_NUMBERS="9725012345678,97253987654321"
-export MY_NUMBER="972508888849"
+export TARGET_NUMBERS=""
 
 # Stop the bot
 pm2 stop vibe-shield
