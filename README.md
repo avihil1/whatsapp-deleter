@@ -7,13 +7,13 @@ Edit the following field in `start` script:
 `export TARGET_NUMBERS=""`, numbers should be seperated with comma.
 
 
-# install
+## install
 npm install
 
-# run
+## run
 ./start
 
-# logs
+## logs
 pm2 logs --lines 50 --time
 
 
