@@ -14,7 +14,7 @@ const client = new Client({
     },
     puppeteer: {
         headless: true,
-        // Increase timeout to prevent the crash you just saw
+        // Increase timeout to prevent the crash on startup in cases of low resources availablity
         protocolTimeout: 60000, 
         args: [
             '--no-sandbox', 
@@ -52,7 +52,6 @@ client.on('message', async (msg) => {
 
     try {
         const rawTargets = process.env.TARGET_NUMBERS || "";
-        // Clean list: just the numbers from Railway
         const blackList = rawTargets.split(',').map(num => num.trim());
                 
         const contact = await msg.getContact();
@@ -63,7 +62,9 @@ client.on('message', async (msg) => {
 
         const isTarget = blackList.some(num => senderNumber.includes(num));
         if (isTarget) {
-            await msg.delete(false); // Delete only for the bot's account
+            // Delete only for the bot's account
+            // if you're an admin, you can delete the message for all members - by changing the parameter to true
+            await msg.delete(false); 
             console.log(`✅ SUCCESS: Message from ${senderNumber} deleted.`);
         }
     } catch (err) {
