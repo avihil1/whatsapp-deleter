@@ -2,8 +2,8 @@
 Always wanted to block specific people in Whatsapp? This is kinda of the thing
 This deletes specific people messages in groups
 
-In order to configure the numbers you want to delete
-Edit the following field in `start` script:
+In order to configure the numbers you'd like to be deleted, 
+edit the following field in `start` script:
 `export TARGET_NUMBERS=""`, numbers should be seperated with comma.
 
 
