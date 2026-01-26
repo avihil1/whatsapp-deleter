@@ -1,0 +1,13 @@
+export TARGET_NUMBERS="9725012345678,97253987654321"
+export MY_NUMBER="972508888849"
+
+# Stop the bot
+pm2 stop vibe-shield
+
+# Kill any hidden Chrome processes
+pkill -f chromium
+
+pm2 restart vibe-shield --update-env || pm2 start index.js --name "vibe-shield" --max-memory-restart 600M --time --update-env
+
+pm2 save
+
