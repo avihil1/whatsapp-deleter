@@ -5,7 +5,7 @@ console.log('--- System Starting Up ---');
 
 const client = new Client({
     authStrategy: new LocalAuth({ 
-        dataPath: '/app/sessions',
+        dataPath: './sessions',
         clientId: "vibe-shield-final" 
     }),
     webVersionCache: {
@@ -21,8 +21,8 @@ const client = new Client({
             '--disable-setuid-sandbox', 
             '--disable-dev-shm-usage', 
             '--disable-gpu',
-            '--single-process',
-            '--disable-accelerated-2d-canvas',
+            //'--single-process',
+            //'--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote'
         ],
@@ -36,7 +36,7 @@ client.on('qr', (qr) => {
 });
 
 client.on('ready', () => {
-    console.log('READY: Bot is fully connected!');
+    console.log('✅ READY: Bot is fully connected!');
 });
 
 client.on('loading_screen', (percent, message) => { console.log('LOADING SCREEN:', percent, message);});
@@ -54,27 +54,24 @@ client.on('message', async (msg) => {
         const rawTargets = process.env.TARGET_NUMBERS || "";
         // Clean list: just the numbers from Railway
         const blackList = rawTargets.split(',').map(num => num.trim());
-        
-        const senderId = msg.author || msg.from; // This is the @lid or @c.us string
-        
-        // 2. Logic: Check if ANY number from your blacklist exists inside the senderId string
-        // This works because "9725..." is usually embedded inside the LID or is the ID itself
-        const isTarget = blackList.some(num => senderId.includes(num));
+                
+        const contact = await msg.getContact();
+        const senderNumber = contact.number; // This is the clean phone number (e.g., 97250...)
 
-        console.log(`[Msg] Group: ${msg.from} | Sender: ${senderId} | Match: ${isTarget}`);
+        console.log(`[Msg] Group: ${msg.from} | Sender: ${senderNumber} | name: notifyName: ${msg._data.notifyName}`);
+        if(!senderNumber) return;
 
+        const isTarget = blackList.some(num => senderNumber.includes(num));
         if (isTarget) {
             await msg.delete(false); // Delete only for the bot's account
-            console.log(`✅ SUCCESS: Message from ${senderId} deleted.`);
+            console.log(`✅ SUCCESS: Message from ${senderNumber} deleted.`);
         }
     } catch (err) {
         console.error(`❌ Error processing message:`, err.message);
     }
 });
 
-client.on('disconnected', (reason) => {
-    console.log('DISCONNECTED:', reason);
-});
+client.on('disconnected', (reason) => { console.log('DISCONNECTED:', reason); });
 
 const shutdown = async (signal) => {
     console.log(`[${new Date().toISOString()}] Received ${signal}. Closing browser...`);
