@@ -9,6 +9,12 @@
       "pm2": "^6.0.0"
     },
     "scripts": {
-      "start": "node index.js"
+      "start": "pm2 restart vibe-shield --update-env",
+      "stop": "pm2 stop vibe-shield",
+      "restart": "pm2 restart vibe-shield",
+      "logs": "pm2 logs vibe-shield --lines 50 --time",
+      "status": "pm2 status vibe-shield",
+      "delete": "pm2 delete vibe-shield",
+      "save": "pm2 save"
     }
   }
