@@ -7,7 +7,7 @@ edit the following field in `start` script:
 `export TARGET_NUMBERS=""`, numbers should be seperated with comma.
 
 After the app started, run 
-`npm logs` or 
+`npm run logs` or 
 `pm2 logs --lines 50 --time`
 
 There will be printed a QR code and the URL for the QR code.
