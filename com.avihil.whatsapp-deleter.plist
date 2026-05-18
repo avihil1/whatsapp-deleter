@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.avihil.whatsapp-deleter</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/hillelk/Source/whatsapp-deleter/bin/run</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/hillelk/Source/whatsapp-deleter</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    <key>StandardOutPath</key>
+    <string>/Users/hillelk/Library/Logs/whatsapp-deleter/out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/hillelk/Library/Logs/whatsapp-deleter/err.log</string>
+</dict>
+</plist>
