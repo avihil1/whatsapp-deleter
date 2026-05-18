@@ -113,32 +113,30 @@ client.on('message', async (msg) => {
         const author = msg.author;
         if (!author) return;
 
-        // Resolve both LID and phone for this WID. WhatsApp's "Phone Number
-        // Privacy" feature masks contact.number behind a per-conversation LID,
-        // so we look up the canonical pair and match against either.
-        let lid = null;
-        let pn = null;
-        try {
-            const [pair] = await client.getContactLidAndPhone([author]);
-            lid = pair?.lid || null;
-            pn = pair?.pn || null;
-        } catch (err) {
-            console.error(`[Resolve] getContactLidAndPhone failed for ${author}: ${err.message}`);
+        // Resolve the sender's real phone. LIDs aren't sticky across groups,
+        // so we never match on them. If author is already a @c.us WID, use it
+        // directly; otherwise resolve through client.getContactLidAndPhone.
+        let phone = null;
+        if (author.endsWith('@c.us')) {
+            phone = author.split('@')[0];
+        } else {
+            try {
+                const [pair] = await client.getContactLidAndPhone([author]);
+                if (pair?.pn) phone = pair.pn.split('@')[0];
+            } catch (err) {
+                console.error(`[Resolve] getContactLidAndPhone failed for ${author}: ${err.message}`);
+            }
         }
 
         const pushname = (msg._data.notifyName || '').trim();
-        const candidates = [
-            author.split('@')[0],
-            lid ? lid.split('@')[0] : null,
-            pn ? pn.split('@')[0] : null,
-        ].filter(Boolean);
+        console.log(`[Msg] Group: ${msg.from} | author: ${author} | phone: ${phone || '-'} | name: ${pushname}`);
 
-        console.log(`[Msg] Group: ${msg.from} | author: ${author} | phone: ${pn || '-'} | lid: ${lid || '-'} | name: ${pushname}`);
+        if (!phone) return;
 
-        const isTarget = [...targets].some((t) => candidates.some((c) => c.includes(t)));
+        const isTarget = [...targets].some((t) => phone.includes(t));
         if (isTarget) {
             await msg.delete(false);
-            console.log(`✅ SUCCESS: Message from author=${author} (phone=${pn || '-'}, lid=${lid || '-'}) deleted.`);
+            console.log(`✅ SUCCESS: Message from phone=${phone} deleted.`);
         }
     } catch (err) {
         console.error('❌ Error processing message:', err.message);
