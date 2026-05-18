@@ -5,16 +5,10 @@
     "dependencies": {
       "whatsapp-web.js": "^1.23.0",
       "qrcode-terminal": "^0.12.0",
-      "puppeteer": "^22.0.0",
-      "pm2": "^6.0.0"
+      "puppeteer": "^22.0.0"
     },
     "scripts": {
-      "start": "pm2 restart vibe-shield --update-env",
-      "stop": "pm2 stop vibe-shield",
-      "restart": "pm2 restart vibe-shield",
-      "logs": "pm2 logs vibe-shield --lines 50 --time",
-      "status": "pm2 status vibe-shield",
-      "delete": "pm2 delete vibe-shield",
-      "save": "pm2 save"
+      "start": "./bin/run",
+      "logs": "tail -f ~/Library/Logs/whatsapp-deleter/out.log"
     }
   }
