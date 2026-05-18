@@ -1,5 +1,6 @@
 # whatsapp-deleter (launchd edition)
 
+It's basically the "block this annoying person" not interested in "good morning" every morning in the neighbours group
 Auto-deletes (delete-for-me) WhatsApp group messages from configured phone numbers. Runs as a macOS LaunchAgent — starts at login, restarts on crash.
 
 ## Install (one-time)
