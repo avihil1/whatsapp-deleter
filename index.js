@@ -110,16 +110,35 @@ client.on('message', async (msg) => {
     if (!msg.from.endsWith('@g.us')) return;
 
     try {
-        const contact = await msg.getContact();
-        const senderNumber = contact.number;
-        if (!senderNumber) return;
+        const author = msg.author;
+        if (!author) return;
 
-        console.log(`[Msg] Group: ${msg.from} | Sender: ${senderNumber} | notifyName: ${msg._data.notifyName}`);
+        // Resolve both LID and phone for this WID. WhatsApp's "Phone Number
+        // Privacy" feature masks contact.number behind a per-conversation LID,
+        // so we look up the canonical pair and match against either.
+        let lid = null;
+        let pn = null;
+        try {
+            const [pair] = await client.getContactLidAndPhone([author]);
+            lid = pair?.lid || null;
+            pn = pair?.pn || null;
+        } catch (err) {
+            console.error(`[Resolve] getContactLidAndPhone failed for ${author}: ${err.message}`);
+        }
 
-        const isTarget = [...targets].some((num) => senderNumber.includes(num));
+        const pushname = (msg._data.notifyName || '').trim();
+        const candidates = [
+            author.split('@')[0],
+            lid ? lid.split('@')[0] : null,
+            pn ? pn.split('@')[0] : null,
+        ].filter(Boolean);
+
+        console.log(`[Msg] Group: ${msg.from} | author: ${author} | phone: ${pn || '-'} | lid: ${lid || '-'} | name: ${pushname}`);
+
+        const isTarget = [...targets].some((t) => candidates.some((c) => c.includes(t)));
         if (isTarget) {
             await msg.delete(false);
-            console.log(`✅ SUCCESS: Message from ${senderNumber} deleted.`);
+            console.log(`✅ SUCCESS: Message from author=${author} (phone=${pn || '-'}, lid=${lid || '-'}) deleted.`);
         }
     } catch (err) {
         console.error('❌ Error processing message:', err.message);
