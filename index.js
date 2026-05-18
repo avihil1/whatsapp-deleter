@@ -1,12 +1,63 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const { exec } = require('child_process');
 
 console.log('--- System Starting Up ---');
 
+const TARGETS_FILE = path.join(os.homedir(), '.config', 'whatsapp-deleter', 'targets.txt');
+let targets = new Set();
+
+function loadTargets() {
+    try {
+        const raw = fs.readFileSync(TARGETS_FILE, 'utf8');
+        targets = new Set(
+            raw.split('\n')
+               .map(l => l.replace(/#.*/, '').trim())
+               .filter(Boolean)
+        );
+        console.log(`[Targets] Loaded ${targets.size} number(s) from ${TARGETS_FILE}`);
+    } catch (err) {
+        console.error(`[Targets] Failed to load: ${err.message}`);
+        targets = new Set();
+    }
+}
+loadTargets();
+fs.watchFile(TARGETS_FILE, { interval: 2000 }, loadTargets);
+
+const FAILURE_THRESHOLD = 3;
+let consecutiveFailures = 0;
+let notifiedForCurrentStreak = false;
+
+function notify(title, message) {
+    const t = title.replace(/"/g, '\\"');
+    const m = message.replace(/"/g, '\\"');
+    exec(`osascript -e 'display notification "${m}" with title "${t}"'`);
+}
+
+function recordFailure(reason) {
+    consecutiveFailures++;
+    console.error(`[Health] Failure #${consecutiveFailures}: ${reason}`);
+    if (consecutiveFailures >= FAILURE_THRESHOLD && !notifiedForCurrentStreak) {
+        notify('WhatsApp Deleter', `${consecutiveFailures} consecutive failures: ${reason}`);
+        notifiedForCurrentStreak = true;
+    }
+}
+
+function recordHealthy() {
+    if (consecutiveFailures > 0) {
+        console.log(`[Health] Recovered after ${consecutiveFailures} failure(s).`);
+    }
+    consecutiveFailures = 0;
+    notifiedForCurrentStreak = false;
+}
+
 const client = new Client({
-    authStrategy: new LocalAuth({ 
+    authStrategy: new LocalAuth({
         dataPath: './sessions',
-        clientId: "vibe-shield-final" 
+        clientId: 'vibe-shield-final'
     }),
     webVersionCache: {
         type: 'remote',
@@ -14,19 +65,16 @@ const client = new Client({
     },
     puppeteer: {
         headless: true,
-        // Increase timeout to prevent the crash on startup in cases of low resources availablity
-        protocolTimeout: 60000, 
+        protocolTimeout: 60000,
         args: [
-            '--no-sandbox', 
-            '--disable-setuid-sandbox', 
-            '--disable-dev-shm-usage', 
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
             '--disable-gpu',
-            //'--single-process',
-            //'--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote'
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined 
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
     }
 });
 
@@ -37,42 +85,46 @@ client.on('qr', (qr) => {
 
 client.on('ready', () => {
     console.log('✅ READY: Bot is fully connected!');
+    recordHealthy();
 });
 
-client.on('loading_screen', (percent, message) => { console.log('LOADING SCREEN:', percent, message);});
-client.on('authenticated', () => { console.log('AUTHENTICATED: Session saved successfully.');});
-client.on('auth_failure', msg => { console.error('AUTHENTICATION FAILURE:', msg); });
+client.on('loading_screen', (percent, message) => {
+    console.log('LOADING SCREEN:', percent, message);
+});
+
+client.on('authenticated', () => {
+    console.log('AUTHENTICATED: Session saved successfully.');
+});
+
+client.on('auth_failure', (msg) => {
+    console.error('AUTHENTICATION FAILURE:', msg);
+    recordFailure(`auth_failure: ${msg}`);
+});
+
+client.on('disconnected', (reason) => {
+    console.log('DISCONNECTED:', reason);
+    recordFailure(`disconnected: ${reason}`);
+});
 
 client.on('message', async (msg) => {
-    // 1. Quick exit if not a group message
-    if (!msg.from.endsWith('@g.us')) {
-        console.log(`[Msg] Not a group message: ${msg.from || msg.author}`);
-        return;
-    }
+    if (!msg.from.endsWith('@g.us')) return;
 
     try {
-        const rawTargets = process.env.TARGET_NUMBERS || "";
-        const blackList = rawTargets.split(',').map(num => num.trim());
-                
         const contact = await msg.getContact();
-        const senderNumber = contact.number; // This is the clean phone number (e.g., 97250...)
+        const senderNumber = contact.number;
+        if (!senderNumber) return;
 
-        console.log(`[Msg] Group: ${msg.from} | Sender: ${senderNumber} | name: notifyName: ${msg._data.notifyName}`);
-        if(!senderNumber) return;
+        console.log(`[Msg] Group: ${msg.from} | Sender: ${senderNumber} | notifyName: ${msg._data.notifyName}`);
 
-        const isTarget = blackList.some(num => senderNumber.includes(num));
+        const isTarget = [...targets].some((num) => senderNumber.includes(num));
         if (isTarget) {
-            // Delete only for the bot's account
-            // if you're an admin, you can delete the message for all members - by changing the parameter to true
-            await msg.delete(false); 
+            await msg.delete(false);
             console.log(`✅ SUCCESS: Message from ${senderNumber} deleted.`);
         }
     } catch (err) {
-        console.error(`❌ Error processing message:`, err.message);
+        console.error('❌ Error processing message:', err.message);
     }
 });
-
-client.on('disconnected', (reason) => { console.log('DISCONNECTED:', reason); });
 
 const shutdown = async (signal) => {
     console.log(`[${new Date().toISOString()}] Received ${signal}. Closing browser...`);
